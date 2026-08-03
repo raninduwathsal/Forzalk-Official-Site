@@ -2,24 +2,30 @@ import './index.css';
 
 console.log('FORZALK Official Site initialized');
 
-// Auto-scroll to Featured Work after content loads (cancelled if user scrolls/interacts)
+// Apple-style smooth scroll logic for Featured Work section
 (function initAutoScrollToFeaturedWork() {
-  // If user opened page with a target hash (e.g. #services), don't override scroll
+  // If user opened page with a target anchor (e.g. #services), don't auto scroll
   if (window.location.hash && window.location.hash !== '#' && window.location.hash !== '#hero') {
     return;
   }
 
   let userInteracted = false;
+  let scrollAnimFrame = null;
+  let isAutoScrolling = false;
 
   function markUserInteraction() {
     userInteracted = true;
+    if (scrollAnimFrame) {
+      cancelAnimationFrame(scrollAnimFrame);
+      scrollAnimFrame = null;
+    }
     removeListeners();
   }
 
   function onScrollCheck() {
-    if (window.scrollY > 20) {
-      userInteracted = true;
-      removeListeners();
+    // If scroll event occurred while NOT auto-scrolling, mark user interaction
+    if (!isAutoScrolling && window.scrollY > 15) {
+      markUserInteraction();
     }
   }
 
@@ -41,17 +47,53 @@ console.log('FORZALK Official Site initialized');
 
   addListeners();
 
-  function attemptAutoScroll() {
+  // Apple-style quartic ease-out deceleration curve (mimics iOS/macOS smooth inertia scroll)
+  function appleEaseOut(t) {
+    return 1 - Math.pow(1 - t, 4);
+  }
+
+  function smoothScrollAppleStyle(targetElement, duration = 1600) {
     if (userInteracted) return;
 
-    // Verify user is still near top of page
+    const startPosition = window.pageYOffset || document.documentElement.scrollTop;
+    const targetPosition = targetElement.getBoundingClientRect().top + startPosition;
+    const distance = targetPosition - startPosition;
+    let startTime = null;
+    isAutoScrolling = true;
+
+    function step(currentTime) {
+      if (userInteracted) {
+        isAutoScrolling = false;
+        return;
+      }
+
+      if (!startTime) startTime = currentTime;
+      const timeElapsed = currentTime - startTime;
+      const progress = Math.min(timeElapsed / duration, 1);
+      const easedProgress = appleEaseOut(progress);
+
+      window.scrollTo(0, startPosition + distance * easedProgress);
+
+      if (progress < 1) {
+        scrollAnimFrame = requestAnimationFrame(step);
+      } else {
+        isAutoScrolling = false;
+        scrollAnimFrame = null;
+        removeListeners();
+      }
+    }
+
+    scrollAnimFrame = requestAnimationFrame(step);
+  }
+
+  function attemptAutoScroll() {
+    if (userInteracted) return;
     if (window.scrollY > 50) return;
 
     const workSection = document.getElementById('work');
     if (workSection && !userInteracted) {
-      workSection.scrollIntoView({ behavior: 'smooth' });
+      smoothScrollAppleStyle(workSection, 1600);
     }
-    removeListeners();
   }
 
   function waitForImagesInWork() {
@@ -72,10 +114,10 @@ console.log('FORZALK Official Site initialized');
 
   function onReady() {
     waitForImagesInWork().then(() => {
-      // 600ms delay to let user see hero section before smooth scrolling
+      // 500ms (half-second) delay before scroll initiates
       setTimeout(() => {
         attemptAutoScroll();
-      }, 600);
+      }, 500);
     });
   }
 
