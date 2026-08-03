@@ -52,7 +52,7 @@ console.log('FORZALK Official Site initialized');
     return 1 - Math.pow(1 - t, 4);
   }
 
-  function smoothScrollAppleStyle(targetElement, duration = 1600, offset = 15) {
+  function smoothScrollAppleStyle(targetElement, duration = 1600, offset = 160) {
     if (userInteracted) return;
 
     const startPosition = window.pageYOffset || document.documentElement.scrollTop;
@@ -92,7 +92,8 @@ console.log('FORZALK Official Site initialized');
 
     const workSection = document.getElementById('work');
     if (workSection && !userInteracted) {
-      smoothScrollAppleStyle(workSection, 1600, 15);
+      // Scroll down further into section (160px offset) to bypass section padding and bring cards into full view
+      smoothScrollAppleStyle(workSection, 1600, 160);
     }
   }
 
