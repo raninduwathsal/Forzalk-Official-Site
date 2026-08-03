@@ -52,11 +52,11 @@ console.log('FORZALK Official Site initialized');
     return 1 - Math.pow(1 - t, 4);
   }
 
-  function smoothScrollAppleStyle(targetElement, duration = 1600) {
+  function smoothScrollAppleStyle(targetElement, duration = 1600, offset = 15) {
     if (userInteracted) return;
 
     const startPosition = window.pageYOffset || document.documentElement.scrollTop;
-    const targetPosition = targetElement.getBoundingClientRect().top + startPosition;
+    const targetPosition = targetElement.getBoundingClientRect().top + startPosition + offset;
     const distance = targetPosition - startPosition;
     let startTime = null;
     isAutoScrolling = true;
@@ -92,7 +92,7 @@ console.log('FORZALK Official Site initialized');
 
     const workSection = document.getElementById('work');
     if (workSection && !userInteracted) {
-      smoothScrollAppleStyle(workSection, 1600);
+      smoothScrollAppleStyle(workSection, 1600, 15);
     }
   }
 
